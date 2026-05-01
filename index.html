@@ -49,13 +49,38 @@
         .track-mini-item.active img { opacity: 1; border-color: white; transform: scale(1.1); }
 
         ::-webkit-scrollbar { width: 0px; }
+
         @media (max-width: 900px) {
             body { overflow-y: auto; align-items: flex-start; padding: 20px 0; }
             .main-layout { flex-direction: column; height: auto; gap: 15px; }
-            #player-card { width: 90%; margin-right: 0; height: auto; order: 2; }
+            
             #profile-card { width: 90%; height: auto; order: 1; padding: 50px 25px; }
-            #track-card { width: 90%; height: auto; order: 3; overflow-y: visible; }
-            #list { display: flex; overflow-x: auto; width: 100%; gap: 15px; padding: 10px 0; }
+            
+            #track-card { 
+                width: 90%; 
+                height: auto; 
+                order: 2;
+                overflow-y: visible; 
+                padding: 30px 15px 15px 15px;
+            }
+            
+            #list { 
+                display: flex; 
+                overflow-x: auto; 
+                width: 100%; 
+                gap: 15px; 
+                padding: 10px 0; 
+                scrollbar-width: none;
+            }
+
+            #player-card { 
+                width: 90%; 
+                margin-right: 0; 
+                height: auto; 
+                order: 3;
+            }
+            
+            .track-mini-item { margin-bottom: 0; }
         }
     </style>
 </head>
@@ -132,7 +157,6 @@
             return URL.createObjectURL(new Blob([array], {type: 'audio/mpeg'}));
         }
 
-        // Функция плавного изменения громкости
         function fadeVolume(target, duration, callback) {
             if (fadeInterval) clearInterval(fadeInterval);
             const step = (target - audio.volume) / (duration / 50);
@@ -161,13 +185,10 @@
 
         function loadTrack(index, playImmediate = false) {
             if (index < 0 || index >= myTracks.length) return;
-            
             if (isPlayerVisible && currentIdx === index && playImmediate) {
                 closePlayer();
                 return;
             }
-
-            // Если трек уже играет, сначала плавно приглушаем его
             if (isPlayerVisible && playImmediate) {
                 fadeVolume(0, 200, () => switchData(index, true));
             } else {
@@ -180,24 +201,19 @@
                 playerCard.classList.add('visible');
                 isPlayerVisible = true;
             }
-
             currentIdx = index;
             const t = myTracks[index];
-
             const items = document.querySelectorAll('.track-mini-item');
             items.forEach(i => i.classList.remove('active'));
             if(items[index]) items[index].classList.add('active');
-
             cover.src = t.cover ? `data:image/png;base64,${t.cover}` : 'https://via.placeholder.com/340';
             title.innerText = t.title;
             artistText.innerText = t.artist || "Unknown Artist";
-            
             audio.src = b64toBlob(t.audio);
-            
             if (playImmediate) {
                 audio.volume = 0;
                 playTrack();
-                fadeVolume(volumeSlider.value, 500); // Плавное появление нового трека
+                fadeVolume(volumeSlider.value, 500);
             } else {
                 audio.volume = volumeSlider.value;
             }
@@ -224,11 +240,8 @@
         
         document.getElementById('rewind').onclick = () => { audio.currentTime -= 10; };
         document.getElementById('forward').onclick = () => { audio.currentTime += 10; };
-        
         volumeSlider.addEventListener('input', (e) => {
-            if (!fadeInterval || !fadeInterval._idleTimeout) {
-                audio.volume = e.target.value;
-            }
+            if (!fadeInterval || !fadeInterval._idleTimeout) audio.volume = e.target.value;
         });
         
         audio.addEventListener('timeupdate', () => {
