@@ -9,59 +9,18 @@
         :root { --glass: rgba(255, 255, 255, 0.1); --blur: blur(25px); --accent: #ffffff; }
         body { margin: 0; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); display: flex; align-items: center; justify-content: center; color: white; overflow: hidden; }
         
-        .main-layout { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 20px; 
-            height: 620px; 
-            width: 95%; 
-            max-width: 1200px;
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .glass-panel { 
-            background: var(--glass); 
-            backdrop-filter: var(--blur); 
-            -webkit-backdrop-filter: var(--blur); 
-            border: 1px solid rgba(255,255,255,0.15); 
-            border-radius: 32px; 
-            padding: 40px 25px 25px 25px; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4); 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            box-sizing: border-box; 
-            position: relative;
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
+        .main-layout { display: flex; align-items: center; justify-content: center; gap: 20px; height: 620px; width: 95%; max-width: 1200px; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass-panel { background: var(--glass); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); border: 1px solid rgba(255,255,255,0.15); border-radius: 32px; padding: 40px 25px 25px 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); display: flex; flex-direction: column; align-items: center; box-sizing: border-box; position: relative; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
         .panel-label { position: absolute; top: 15px; left: 20px; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.4; font-weight: 600; pointer-events: none; }
 
-        #player-card { 
-            width: 380px; 
-            height: 100%; 
-            opacity: 0; 
-            visibility: hidden;
-            transform: translateX(50px) scale(0.9);
-            margin-right: -400px; 
-            pointer-events: none;
-        }
-
-        #player-card.visible { 
-            opacity: 1; 
-            visibility: visible;
-            transform: translateX(0) scale(1); 
-            margin-right: 0;
-            pointer-events: auto;
-        }
+        #player-card { width: 380px; height: 100%; opacity: 0; visibility: hidden; transform: translateX(50px) scale(0.9); margin-right: -400px; pointer-events: none; }
+        #player-card.visible { opacity: 1; visibility: visible; transform: translateX(0) scale(1); margin-right: 0; pointer-events: auto; }
 
         #profile-card { width: 280px; height: 100%; justify-content: center; z-index: 2; }
         #track-card { width: 130px; height: 100%; overflow-y: auto; z-index: 2; }
 
         .avatar-container { width: 160px; height: 160px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.2); overflow: hidden; margin-bottom: 20px; position: relative; flex-shrink: 0; cursor: pointer; }
         .profile-avatar { width: 100%; height: 100%; object-fit: cover; }
-        
         .social-icons { display: flex; gap: 15px; margin-top: 30px; }
         .social-icons a { color: white; font-size: 22px; opacity: 0.6; transition: 0.3s; text-decoration: none; }
         .social-icons a:hover { opacity: 1; transform: translateY(-3px); }
@@ -90,7 +49,6 @@
         .track-mini-item.active img { opacity: 1; border-color: white; transform: scale(1.1); }
 
         ::-webkit-scrollbar { width: 0px; }
-
         @media (max-width: 900px) {
             body { overflow-y: auto; align-items: flex-start; padding: 20px 0; }
             .main-layout { flex-direction: column; height: auto; gap: 15px; }
@@ -165,6 +123,7 @@
         
         let currentIdx = -1;
         let isPlayerVisible = false;
+        let fadeInterval = null;
 
         function b64toBlob(b64) {
             const bin = atob(b64);
@@ -173,13 +132,31 @@
             return URL.createObjectURL(new Blob([array], {type: 'audio/mpeg'}));
         }
 
+        // Функция плавного изменения громкости
+        function fadeVolume(target, duration, callback) {
+            if (fadeInterval) clearInterval(fadeInterval);
+            const step = (target - audio.volume) / (duration / 50);
+            fadeInterval = setInterval(() => {
+                let nextVol = audio.volume + step;
+                if ((step > 0 && nextVol >= target) || (step < 0 && nextVol <= target)) {
+                    audio.volume = target;
+                    clearInterval(fadeInterval);
+                    if (callback) callback();
+                } else {
+                    audio.volume = nextVol;
+                }
+            }, 50);
+        }
+
         function closePlayer() {
-            playerCard.classList.remove('visible');
-            isPlayerVisible = false;
-            pauseTrack();
-            const items = document.querySelectorAll('.track-mini-item');
-            items.forEach(i => i.classList.remove('active'));
-            currentIdx = -1;
+            fadeVolume(0, 300, () => {
+                playerCard.classList.remove('visible');
+                isPlayerVisible = false;
+                pauseTrack();
+                const items = document.querySelectorAll('.track-mini-item');
+                items.forEach(i => i.classList.remove('active'));
+                currentIdx = -1;
+            });
         }
 
         function loadTrack(index, playImmediate = false) {
@@ -190,6 +167,15 @@
                 return;
             }
 
+            // Если трек уже играет, сначала плавно приглушаем его
+            if (isPlayerVisible && playImmediate) {
+                fadeVolume(0, 200, () => switchData(index, true));
+            } else {
+                switchData(index, playImmediate);
+            }
+        }
+
+        function switchData(index, playImmediate) {
             if (playImmediate) {
                 playerCard.classList.add('visible');
                 isPlayerVisible = true;
@@ -207,9 +193,14 @@
             artistText.innerText = t.artist || "Unknown Artist";
             
             audio.src = b64toBlob(t.audio);
-            audio.volume = volumeSlider.value;
-
-            if (playImmediate) playTrack();
+            
+            if (playImmediate) {
+                audio.volume = 0;
+                playTrack();
+                fadeVolume(volumeSlider.value, 500); // Плавное появление нового трека
+            } else {
+                audio.volume = volumeSlider.value;
+            }
         }
 
         function playTrack() { audio.play(); playIcon.classList.replace('fa-play', 'fa-pause'); }
@@ -221,12 +212,24 @@
             }
         }
 
-        playBtn.addEventListener('click', () => audio.paused ? playTrack() : pauseTrack());
+        playBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.volume = 0;
+                playTrack();
+                fadeVolume(volumeSlider.value, 400);
+            } else {
+                fadeVolume(0, 400, () => pauseTrack());
+            }
+        });
         
         document.getElementById('rewind').onclick = () => { audio.currentTime -= 10; };
         document.getElementById('forward').onclick = () => { audio.currentTime += 10; };
         
-        volumeSlider.addEventListener('input', (e) => audio.volume = e.target.value);
+        volumeSlider.addEventListener('input', (e) => {
+            if (!fadeInterval || !fadeInterval._idleTimeout) {
+                audio.volume = e.target.value;
+            }
+        });
         
         audio.addEventListener('timeupdate', () => {
             if (!isNaN(audio.duration)) {
