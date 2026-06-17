@@ -66,28 +66,61 @@
         #player-card { width: 380px; height: 100%; opacity: 0; visibility: hidden; transform: translateX(60px) scale(0.95); margin-right: -404px; pointer-events: none; transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), margin 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
         #player-card.visible { opacity: 1; visibility: visible; transform: translateX(0) scale(1); margin-right: 0; pointer-events: auto; }
 
-        #profile-card { width: 280px; height: 100%; justify-content: center; z-index: 2; }
+        #profile-card { width: 300px; height: 100%; justify-content: center; z-index: 2; }
         #track-card { width: 130px; height: 100%; overflow-y: auto; z-index: 2; }
 
         .avatar-container { width: 150px; height: 150px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.15); overflow: hidden; margin-bottom: 20px; position: relative; flex-shrink: 0; cursor: pointer; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
         .avatar-container:hover { transform: scale(1.05) rotate(3deg); border-color: rgba(255,255,255,0.4); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
         .profile-avatar { width: 100%; height: 100%; object-fit: cover; }
         
-        .social-icons { display: flex; gap: 18px; margin-top: 30px; }
+        .social-icons { display: flex; gap: 18px; margin-top: 20px; }
         .social-icons a { color: white; font-size: 22px; opacity: 0.5; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); text-decoration: none; }
         .social-icons a:hover { opacity: 1; transform: translateY(-4px) scale(1.1); text-shadow: 0 0 15px rgba(255,255,255,0.5); }
 
-        .visits-counter { 
-            margin-top: 25px; 
-            font-size: 10px; 
-            letter-spacing: 2px; 
-            text-transform: uppercase; 
-            opacity: 0.25; 
+        /* Обновленный Discord Spotify Виджет */
+        .spotify-widget { 
+            background: rgba(18, 18, 18, 0.6); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            border-radius: 12px; 
+            padding: 14px; 
             display: flex; 
-            align-items: center; 
-            gap: 6px; 
-            transition: opacity 0.3s, transform 0.3s;
+            flex-direction: column; 
+            gap: 12px; 
+            width: 100%; 
+            box-sizing: border-box; 
+            margin-top: 20px; 
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+            text-decoration: none; 
+            color: white; 
+            cursor: pointer; 
         }
+        .spotify-widget:hover { 
+            background: rgba(30, 30, 30, 0.8); 
+            border-color: rgba(30, 215, 96, 0.3); 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3); 
+        }
+
+        .spotify-header { display: flex; align-items: center; justify-content: space-between; }
+        .spotify-header-left { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
+        .spotify-icon { color: #1DB954; font-size: 14px; animation: pulse 2s infinite; }
+        .spotify-dots { opacity: 0.5; font-size: 16px; margin-top: -8px; }
+
+        .spotify-body { display: flex; align-items: center; gap: 12px; }
+        .spotify-cover { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3); flex-shrink: 0; }
+        
+        .spotify-details { display: flex; flex-direction: column; width: 100%; overflow: hidden; }
+        .spotify-track { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+        .spotify-artist { font-size: 11px; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px; }
+        
+        .spotify-progress-container { display: flex; align-items: center; gap: 8px; width: 100%; }
+        .spotify-time { font-size: 10px; opacity: 0.7; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+        .spotify-progress-bg { flex-grow: 1; height: 3px; background: rgba(255, 255, 255, 0.2); border-radius: 2px; overflow: hidden; }
+        .spotify-progress-fill { height: 100%; background: #ffffff; width: 0%; border-radius: 2px; }
+
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 0.8; } }
+
+        .visits-counter { margin-top: 25px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.25; display: flex; align-items: center; gap: 6px; transition: opacity 0.3s, transform 0.3s; }
         .glass-panel:hover .visits-counter { opacity: 0.6; transform: scale(1.02); }
 
         .main-cover { width: 100%; aspect-ratio: 1/1; border-radius: 20px; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.4); margin-bottom: 20px; transition: opacity 0.2s ease, transform 0.2s ease; }
@@ -133,15 +166,10 @@
         @media (max-width: 900px) {
             body { overflow-y: auto; align-items: flex-start; padding: 25px 0; }
             .main-layout { flex-direction: column; height: auto; gap: 15px; }
-            
             #profile-card { width: 92%; height: auto; order: 1; padding: 50px 25px; }
-            
             #track-card { width: 92%; height: auto; order: 2; overflow-y: visible; padding: 30px 15px 15px 15px; }
-            
             #list { display: flex; overflow-x: auto; width: 100%; gap: 15px; padding: 10px 0; scrollbar-width: none; }
-
             #player-card { width: 92%; margin-right: 0; height: auto; order: 3; }
-            
             .track-mini-item { margin-bottom: 0; }
         }
     </style>
@@ -186,6 +214,32 @@
                 <a href="https://steamcommunity.com/id/chakaezba/" target="_blank"><i class="fab fa-steam"></i></a>
                 <a href="https://open.spotify.com/playlist/3ZJFssXSUtbDXGORMc7eQU?si=b-OQhdTOS4C7B7sXx6YCdQ" target="_blank"><i class="fab fa-spotify"></i></a>
             </div>
+
+            <!-- Обновленный виджет Spotify -->
+            <a href="#" target="_blank" class="spotify-widget" id="spotify-widget" style="display: none;">
+                <div class="spotify-header">
+                    <div class="spotify-header-left">
+                        Listening now <i class="fab fa-spotify spotify-icon"></i>
+                    </div>
+                    <div class="spotify-dots">...</div>
+                </div>
+                <div class="spotify-body">
+                    <img src="" id="spotify-cover" class="spotify-cover" alt="cover">
+                    <div class="spotify-details">
+                        <div class="spotify-track" id="spotify-track">Track Name</div>
+                        <div class="spotify-artist" id="spotify-artist">Artist Name</div>
+                        
+                        <div class="spotify-progress-container">
+                            <span class="spotify-time" id="spotify-time-current">0:00</span>
+                            <div class="spotify-progress-bg">
+                                <div class="spotify-progress-fill" id="spotify-progress-fill"></div>
+                            </div>
+                            <span class="spotify-time" id="spotify-time-total">0:00</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
             <div class="visits-counter">
                 <i class="fas fa-eye" style="font-size: 11px;"></i> Views: <span id="visit-count">...</span>
             </div>
@@ -215,6 +269,78 @@
         let isPlayerVisible = false;
         let fadeInterval = null;
         let originalTitle = document.title;
+
+        const discordId = "1247482161972514826";
+        
+        let spotifyStart = 0;
+        let spotifyEnd = 0;
+        let spotifyTimer = null;
+
+        function formatTime(ms) {
+            if (ms < 0) ms = 0;
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateSpotifyProgress() {
+            if (!spotifyStart || !spotifyEnd) return;
+            
+            const now = new Date().getTime();
+            const total = spotifyEnd - spotifyStart;
+            let current = now - spotifyStart;
+
+            if (current > total) current = total;
+
+            const percent = (current / total) * 100;
+            
+            document.getElementById('spotify-progress-fill').style.width = `${percent}%`;
+            document.getElementById('spotify-time-current').innerText = formatTime(current);
+            document.getElementById('spotify-time-total').innerText = formatTime(total);
+        }
+
+        function fetchSpotifyStatus() {
+            if (!discordId || discordId === "YOUR_DISCORD_ID") return;
+            
+            fetch(`https://api.lanyard.rest/v1/users/${discordId}`)
+                .then(res => res.json())
+                .then(data => {
+                    const widget = document.getElementById('spotify-widget');
+                    const trackEl = document.getElementById('spotify-track');
+                    const artistEl = document.getElementById('spotify-artist');
+                    const coverEl = document.getElementById('spotify-cover');
+                    
+                    if (data.success && data.data.spotify) {
+                        const spotify = data.data.spotify;
+                        
+                        trackEl.innerText = spotify.track;
+                        artistEl.innerText = spotify.artist;
+                        coverEl.src = spotify.album_art_url;
+                        widget.href = `https://open.spotify.com/track/${spotify.track_id}`;
+                        
+                        spotifyStart = spotify.timestamps.start;
+                        spotifyEnd = spotify.timestamps.end;
+                        
+                        if (!spotifyTimer) {
+                            spotifyTimer = setInterval(updateSpotifyProgress, 500);
+                        }
+                        updateSpotifyProgress();
+                        
+                        widget.style.display = 'flex';
+                    } else {
+                        widget.style.display = 'none';
+                        if (spotifyTimer) {
+                            clearInterval(spotifyTimer);
+                            spotifyTimer = null;
+                        }
+                    }
+                })
+                .catch(err => console.log("Lanyard fetch error:", err));
+        }
+
+        setInterval(fetchSpotifyStatus, 10000);
+        fetchSpotifyStatus();
 
         function b64toBlob(b64) {
             const bin = atob(b64);
