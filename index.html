@@ -77,42 +77,17 @@
         .social-icons a { color: white; font-size: 22px; opacity: 0.5; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); text-decoration: none; }
         .social-icons a:hover { opacity: 1; transform: translateY(-4px) scale(1.1); text-shadow: 0 0 15px rgba(255,255,255,0.5); }
 
-        /* Обновленный Discord Spotify Виджет */
-        .spotify-widget { 
-            background: rgba(18, 18, 18, 0.6); 
-            border: 1px solid rgba(255, 255, 255, 0.05); 
-            border-radius: 12px; 
-            padding: 14px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-            width: 100%; 
-            box-sizing: border-box; 
-            margin-top: 20px; 
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
-            text-decoration: none; 
-            color: white; 
-            cursor: pointer; 
-        }
-        .spotify-widget:hover { 
-            background: rgba(30, 30, 30, 0.8); 
-            border-color: rgba(30, 215, 96, 0.3); 
-            transform: translateY(-2px); 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3); 
-        }
-
+        .spotify-widget { background: rgba(18, 18, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px; width: 100%; box-sizing: border-box; margin-top: 20px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); text-decoration: none; color: white; cursor: pointer; }
+        .spotify-widget:hover { background: rgba(30, 30, 30, 0.8); border-color: rgba(30, 215, 96, 0.3); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
         .spotify-header { display: flex; align-items: center; justify-content: space-between; }
         .spotify-header-left { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
         .spotify-icon { color: #1DB954; font-size: 14px; animation: pulse 2s infinite; }
         .spotify-dots { opacity: 0.5; font-size: 16px; margin-top: -8px; }
-
         .spotify-body { display: flex; align-items: center; gap: 12px; }
         .spotify-cover { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3); flex-shrink: 0; }
-        
         .spotify-details { display: flex; flex-direction: column; width: 100%; overflow: hidden; }
         .spotify-track { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
         .spotify-artist { font-size: 11px; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px; }
-        
         .spotify-progress-container { display: flex; align-items: center; gap: 8px; width: 100%; }
         .spotify-time { font-size: 10px; opacity: 0.7; font-variant-numeric: tabular-nums; flex-shrink: 0; }
         .spotify-progress-bg { flex-grow: 1; height: 3px; background: rgba(255, 255, 255, 0.2); border-radius: 2px; overflow: hidden; }
@@ -215,7 +190,6 @@
                 <a href="https://open.spotify.com/playlist/3ZJFssXSUtbDXGORMc7eQU?si=b-OQhdTOS4C7B7sXx6YCdQ" target="_blank"><i class="fab fa-spotify"></i></a>
             </div>
 
-            <!-- Обновленный виджет Spotify -->
             <a href="#" target="_blank" class="spotify-widget" id="spotify-widget" style="display: none;">
                 <div class="spotify-header">
                     <div class="spotify-header-left">
@@ -226,9 +200,8 @@
                 <div class="spotify-body">
                     <img src="" id="spotify-cover" class="spotify-cover" alt="cover">
                     <div class="spotify-details">
-                        <div class="spotify-track" id="spotify-track">Track Name</div>
-                        <div class="spotify-artist" id="spotify-artist">Artist Name</div>
-                        
+                        <div class="spotify-track" id="spotify-track"></div>
+                        <div class="spotify-artist" id="spotify-artist"></div>
                         <div class="spotify-progress-container">
                             <span class="spotify-time" id="spotify-time-current">0:00</span>
                             <div class="spotify-progress-bg">
@@ -271,72 +244,51 @@
         let originalTitle = document.title;
 
         const discordId = "1247482161972514826";
-        
-        let spotifyStart = 0;
-        let spotifyEnd = 0;
-        let spotifyTimer = null;
+        let spotifyStart = 0, spotifyEnd = 0, spotifyTimer = null;
 
         function formatTime(ms) {
             if (ms < 0) ms = 0;
-            const totalSeconds = Math.floor(ms / 1000);
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const secs = Math.floor(ms / 1000);
+            return `${Math.floor(secs / 60)}:${(secs % 60).toString().padStart(2, '0')}`;
         }
 
         function updateSpotifyProgress() {
             if (!spotifyStart || !spotifyEnd) return;
-            
-            const now = new Date().getTime();
+            let current = new Date().getTime() - spotifyStart;
             const total = spotifyEnd - spotifyStart;
-            let current = now - spotifyStart;
-
             if (current > total) current = total;
-
-            const percent = (current / total) * 100;
             
-            document.getElementById('spotify-progress-fill').style.width = `${percent}%`;
+            document.getElementById('spotify-progress-fill').style.width = `${(current / total) * 100}%`;
             document.getElementById('spotify-time-current').innerText = formatTime(current);
             document.getElementById('spotify-time-total').innerText = formatTime(total);
         }
 
         function fetchSpotifyStatus() {
-            if (!discordId || discordId === "YOUR_DISCORD_ID") return;
+            if (!discordId) return;
             
             fetch(`https://api.lanyard.rest/v1/users/${discordId}`)
                 .then(res => res.json())
                 .then(data => {
                     const widget = document.getElementById('spotify-widget');
-                    const trackEl = document.getElementById('spotify-track');
-                    const artistEl = document.getElementById('spotify-artist');
-                    const coverEl = document.getElementById('spotify-cover');
-                    
                     if (data.success && data.data.spotify) {
-                        const spotify = data.data.spotify;
+                        const s = data.data.spotify;
                         
-                        trackEl.innerText = spotify.track;
-                        artistEl.innerText = spotify.artist;
-                        coverEl.src = spotify.album_art_url;
-                        widget.href = `https://open.spotify.com/track/${spotify.track_id}`;
+                        document.getElementById('spotify-track').innerText = s.song;
+                        document.getElementById('spotify-artist').innerText = s.artist;
+                        document.getElementById('spotify-cover').src = s.album_art_url;
+                        widget.href = `https://open.spotify.com/track/$${s.track_id}`;
                         
-                        spotifyStart = spotify.timestamps.start;
-                        spotifyEnd = spotify.timestamps.end;
+                        spotifyStart = s.timestamps.start;
+                        spotifyEnd = s.timestamps.end;
                         
-                        if (!spotifyTimer) {
-                            spotifyTimer = setInterval(updateSpotifyProgress, 500);
-                        }
+                        if (!spotifyTimer) spotifyTimer = setInterval(updateSpotifyProgress, 500);
                         updateSpotifyProgress();
-                        
                         widget.style.display = 'flex';
                     } else {
                         widget.style.display = 'none';
-                        if (spotifyTimer) {
-                            clearInterval(spotifyTimer);
-                            spotifyTimer = null;
-                        }
+                        if (spotifyTimer) { clearInterval(spotifyTimer); spotifyTimer = null; }
                     }
-                })
-                .catch(err => console.log("Lanyard fetch error:", err));
+                }).catch(e => console.log(e));
         }
 
         setInterval(fetchSpotifyStatus, 10000);
@@ -432,17 +384,23 @@
         }
 
         function countVisits() {
-            fetch('https://api.counterapi.dev/v1/chakaezba/space/up')
+            const lastVisit = localStorage.getItem('space_view_time');
+            const now = new Date().getTime();
+            const oneHour = 60 * 60 * 1000;
+            let endpoint = 'https://api.counterapi.dev/v1/chakaezba/space';
+
+            if (!lastVisit || (now - lastVisit > oneHour)) {
+                endpoint = 'https://api.counterapi.dev/v1/chakaezba/space/up';
+                localStorage.setItem('space_view_time', now.toString());
+            }
+
+            fetch(endpoint)
                 .then(res => res.json())
                 .then(data => {
                     if (data && data.count) {
                         document.getElementById('visit-count').innerText = data.count;
                     }
-                })
-                .catch(err => {
-                    console.log('Ошибка счетчика:', err);
-                    document.getElementById('visit-count').innerText = 'offline';
-                });
+                }).catch(e => console.log(e));
         }
 
         playBtn.addEventListener('click', () => {
